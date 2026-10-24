@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>無人機證照・個人刷題複習王</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+
+  <!-- 頂部標頭 -->
+  <header>
+    <div class="header-container">
+      <div class="logo-area">
+        <h1>✈️ 無人機證照・個人刷題複習王</h1>
+      </div>
+      
+      <div class="course-selector">
+        <label for="courseSelect"><strong>目標證照：</strong></label>
+        <select id="courseSelect">
+          <option value="普通操作證學科題庫" selected>普通操作證（388 題）</option>
+          <option value="專業操作證學科題庫">專業操作證（588 題）</option>
+          <option value="專業操作證屆期換證題庫">專業換證題庫（324 題）</option>
+          <option value="專業操作證屆期換證題庫_簡易">專業換證_簡易（120 題）</option>
+        </select>
+      </div>
+
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="icon-btn" title="切換深淺色模式">🌙 深色</button>
+        <button id="resetDataBtn" class="icon-btn" title="重設目前考科作答紀錄">🔄 重置進度</button>
+      </div>
+    </div>
+
+    <!-- 模式頁籤 -->
+    <nav class="nav-tabs">
+      <button class="tab-btn active" data-tab="dashboard">📊 學習總覽</button>
+      <button class="tab-btn" data-tab="practice">📚 章節循序練習</button>
+      <button class="tab-btn" data-tab="mock">🎯 全真模擬考</button>
+      <button class="tab-btn" data-tab="wrong">❌ 錯題特訓庫 <span id="wrongBadge" class="badge">0</span></button>
+      <button class="tab-btn" data-tab="search">⭐ 收藏與題庫搜尋 <span id="favBadge" class="badge badge-gray">0</span></button>
+    </nav>
+  </header>
+
+  <!-- 主要內容區 -->
+  <main>
+
+    <!-- 1. 學習總覽 (Dashboard) -->
+    <section id="tab-dashboard" class="tab-content">
+      <div class="dashboard-grid">
+        <div class="stat-card">
+          <span class="stat-title">題庫總題數</span>
+          <span id="statTotalQuestions" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">已練習題數</span>
+          <span id="statPracticedCount" class="stat-value">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">練習答對率</span>
+          <span id="statAccuracyRate" class="stat-value">0%</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-title">待複習錯題數</span>
+          <span id="statWrongCount" class="stat-value" style="color: var(--danger);">0</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 style="margin-bottom: 16px;">🚀 快速開始練習</h2>
+        <p style="color: var(--text-muted); margin-bottom: 20px;">
+          請選擇適合您目前複習階段的模式：
+        </p>
+        <div style="display: flex; gap: 16px; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="app.switchTab('practice')">
+            📚 開始章節循序練習
+          </button>
+          <button class="btn btn-outline" onclick="app.switchTab('mock')">
+            🎯 開始全真模擬考（40題）
+          </button>
+          <button class="btn btn-outline" onclick="app.switchTab('wrong')">
+            ❌ 複習我的錯題本
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom: 12px;">💡 備考小叮嚀（民航局學科考試）</h3>
+        <ul style="padding-left: 20px; color: var(--text-muted); line-height: 1.8;">
+          <li><strong>普通操作證</strong>：電腦測驗 40 題，測驗時間 40 分鐘，滿分 100 分，及格標準為 <strong>80 分</strong>（至多錯 8 題）。</li>
+          <li><strong>專業操作證</strong>：測驗時間 60 分鐘，滿分 100 分，及格標準為 <strong>80 分</strong>。</li>
+          <li>建議先透過「章節循序練習」地毯式刷題並研讀法規詳解，再以「全真模擬考」檢測配速，最後鎖定「錯題特訓庫」完全清零！</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- 2. 章節循序練習 (Practice) -->
+    <section id="tab-practice" class="tab-content" style="display: none;">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <label><strong>章節篩選：</strong></label>
+          <select id="practiceTopicSelect" class="filter-select">
+            <option value="ALL">全部章節 (全部題目)</option>
+          </select>
+          <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+            <input type="checkbox" id="practiceShuffleCheck"> 隨機亂序出題
+          </label>
+        </div>
+        <div>
+          <button id="practiceRestartBtn" class="btn btn-outline">🔄 重新開始本章</button>
+        </div>
+      </div>
+
+      <div class="card" id="practiceQuestionCard">
+        <!-- 動態渲染題目 -->
+      </div>
+    </section>
+
+    <!-- 3. 全真模擬考 (Mock) -->
+    <section id="tab-mock" class="tab-content" style="display: none;">
+      <!-- 考試準備畫面 -->
+      <div class="card" id="mockIntroCard">
+        <h2 style="margin-bottom: 12px;">🎯 全真計時模擬測驗</h2>
+        <p style="color: var(--text-muted); margin-bottom: 16px;">
+          完全比照民航局電腦測驗標準：
+        </p>
+        <ul style="padding-left: 20px; color: var(--text-muted); margin-bottom: 24px; line-height: 1.8;">
+          <li>題目數量：<strong>40 題</strong>（由目前考科隨機抽選）</li>
+          <li>考試時間：<strong>40 分鐘</strong>（倒數計時）</li>
+          <li>評分標準：每題 2.5 分，滿分 100 分，<strong>80 分及格</strong></li>
+          <li>作答期間不提供答案提示，交卷後立即產生成績單與錯題分析報告。</li>
+        </ul>
+        <button id="startMockBtn" class="btn btn-primary" style="font-size: 1.1rem; padding: 12px 28px;">
+          🚀 開始模擬考試
+        </button>
+      </div>
+
+      <!-- 考試進行中畫面 -->
+      <div id="mockExamRunningArea" style="display: none;">
+        <div class="filter-bar">
+          <div style="font-size: 1.2rem; font-weight: 700; color: var(--danger); display: flex; align-items: center; gap: 6px;">
+            ⏱️ 剩餘時間：<span id="mockTimer">40:00</span>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button id="submitMockExamBtn" class="btn btn-danger">📝 立即交卷</button>
+          </div>
+        </div>
+
+        <div class="card" id="mockQuestionCard">
+          <!-- 考試當前題 -->
+        </div>
+
+        <!-- 答題卡選單 -->
+        <div class="card">
+          <div style="font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between;">
+            <span>答題卡 (點擊直接跳題)：</span>
+            <span id="mockAnswerProgress">已答：0 / 40</span>
+          </div>
+          <div class="exam-grid" id="mockAnswerGrid">
+            <!-- 動態生成 1~40 按鈕 -->
+          </div>
+        </div>
+      </div>
+
+      <!-- 考試結果結算畫面 -->
+      <div class="card" id="mockResultCard" style="display: none;">
+        <!-- 動態渲染考試結果與錯題清單 -->
+      </div>
+    </section>
+
+    <!-- 4. 錯題特訓庫 (Wrong) -->
+    <section id="tab-wrong" class="tab-content" style="display: none;">
+      <div class="filter-bar">
+        <div style="font-weight: 600; font-size: 1.1rem;">
+          ❌ 待消滅錯題庫（做對可移出）
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="clearWrongListBtn" class="btn btn-outline" style="color: var(--danger);">🗑️ 清空所有錯題</button>
+        </div>
+      </div>
+
+      <div id="wrongQuizContainer">
+        <!-- 錯題練習卡 -->
+      </div>
+    </section>
+
+    <!-- 5. 收藏與題庫搜尋 (Search & Favorites) -->
+    <section id="tab-search" class="tab-content" style="display: none;">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <input type="text" id="searchKeywordInput" class="search-input" placeholder="🔍 輸入關鍵字（例如：空域、罰鍰、氣象）...">
+          <button id="searchBtn" class="btn btn-primary">搜尋</button>
+          <button id="showOnlyFavsBtn" class="btn btn-outline">⭐ 只看星號收藏</button>
+        </div>
+        <div id="searchResultStats" style="color: var(--text-muted);">
+          共 0 筆結果
+        </div>
+      </div>
+
+      <div id="searchResultsList" style="display: flex; flex-direction: column; gap: 16px;">
+        <!-- 搜尋結果卡片清單 -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 引用題庫資料與主程式邏輯 -->
+  <script src="questions_data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
